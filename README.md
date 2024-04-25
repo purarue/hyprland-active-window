@@ -1,6 +1,6 @@
 # hyprland-watcher-window
 
-A daemon which connects to the active [Hyprland](https://github.com/hyprwm/Hyprland) socket and saves which window is currently focused. This is a wayland version of [this](https://github.com/seanbreckenridge/aw-watcher-window) CLI tool.
+A script which connects to the active [Hyprland](https://github.com/hyprwm/Hyprland) socket and saves which window is currently focused. This is a wayland version of [this](https://github.com/seanbreckenridge/aw-watcher-window) CLI tool.
 
 This works much nicer than the X11 version since it no longer has to poll the active window, and recieves events over the socket whenever Hyprland broadcast any changes.
 
