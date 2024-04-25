@@ -1,0 +1,119 @@
+#!/usr/bin/env python3
+import socket
+import os
+import csv
+import re
+from time import time
+from typing import Sequence, Optional, Tuple
+
+import click
+from logzero import logger  # type: ignore[import]
+
+
+class Manager:
+    def __init__(self, ignore_regexes: list[str], datafile: str) -> None:
+        self.ignore_regexes = ignore_regexes
+        self.datafile = datafile
+        self.current_window_started_at: Optional[float] = None
+        self.current_window: Optional[Tuple[str, str]] = None
+
+    def matches_ignore_regex(
+        self, appname: str, title: str, ignore_regexes: list[str]
+    ) -> bool:
+        for pat in ignore_regexes:
+            if bool(re.search(pat, appname)):
+                logger.debug(f"{appname} matched {pat}, skipping write to file")
+                return True
+            if bool(re.search(pat, title)):
+                logger.debug(f"{title} matched {pat}, skipping write to file")
+                return True
+        return False
+
+    def write_to_file(self, window_row: list[str]) -> None:
+        logger.info(f"Writing to file: {window_row}")
+        with open(self.datafile, "a") as dataf:
+            data_writer = csv.writer(
+                dataf, delimiter=",", quotechar="|", quoting=csv.QUOTE_MINIMAL
+            )
+            data_writer.writerow(window_row)
+
+    def handle_socket_data(self, line: str) -> None:
+        if ">>" not in line:
+            logger.debug(f"Ignoring message: '{line}'")
+            return
+        msgtype, _, data = line.partition(">>")
+        match msgtype:
+            case "activewindow":
+                logger.info(f"Active window: {data}")
+                appname, _, title = data.partition(",")
+                now = time()
+                has_data = appname.strip() or title.strip()
+                # we recieved an event, so if we have a previous window
+                # write it out
+                if (
+                    self.current_window is not None
+                    and self.current_window_started_at is not None
+                ):
+                    if not self.matches_ignore_regex(
+                        self.current_window[0],
+                        self.current_window[1],
+                        self.ignore_regexes,
+                    ):
+                        self.write_to_file(
+                            [
+                                str(self.current_window_started_at),
+                                str(now - self.current_window_started_at),
+                                *self.current_window,
+                            ]
+                        )
+
+                if has_data:
+                    logger.debug("Switched to new window...")
+                    # then save what we just switched to
+                    self.current_window = (appname, title)
+                    self.current_window_started_at = now
+                else:
+                    logger.debug("Empty window, resetting")
+                    # otherwise, if we switched to something like an empty desktop, reset
+                    self.current_window = None
+                    self.current_window_started_at = None
+
+            case _:
+                pass
+
+
+HYPRLAND_INSTANCE_SIGNATURE = os.environ["HYPRLAND_INSTANCE_SIGNATURE"]
+
+
+@click.command()
+@click.option("--datafile", "-d", required=True, help="File to write data to")
+@click.option(
+    "--ignore-regex",
+    "-i",
+    multiple=True,
+    help="Regex to ignore when writing to file",
+)
+def main(datafile: str, ignore_regex: Sequence[str]) -> None:
+    manager = Manager(ignore_regexes=list(ignore_regex), datafile=datafile)
+
+    socket_path = os.path.join(
+        "/tmp/hypr/", HYPRLAND_INSTANCE_SIGNATURE, ".socket2.sock"
+    )
+
+    if not os.path.exists(socket_path):
+        click.secho(f"Socket {socket_path} does not exist", fg="red", err=True)
+        exit(1)
+
+    with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client_socket:
+        client_socket.connect(socket_path)
+
+        while True:
+            line = client_socket.recv(1024).decode("utf-8")
+            if not line:
+                break
+            for ln in line.splitlines():
+                manager.handle_socket_data(ln)
+
+
+if __name__ == "__main__":
+    main()
