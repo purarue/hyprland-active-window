@@ -26,3 +26,5 @@ pip install git+https://seanbreckenridge/hyprland-active-window
 ```
 hyprland-active-window -d ~/Documents/focused_window.csv
 ```
+
+Like `window_watcher`, this CSV can be parsed with [active_window](https://github.com/seanbreckenridge/active_window) to python, or into JSON. This is also used internally in [HPI](https://github.com/seanbreckenridge/HPI/blob/master/my/activitywatch/active_window.py)
