@@ -96,12 +96,26 @@ HYPRLAND_INSTANCE_SIGNATURE = os.environ["HYPRLAND_INSTANCE_SIGNATURE"]
 def main(datafile: str, ignore_regex: Sequence[str]) -> None:
     manager = Manager(ignore_regexes=list(ignore_regex), datafile=datafile)
 
-    socket_path = os.path.join(
-        "/tmp/hypr/", HYPRLAND_INSTANCE_SIGNATURE, ".socket2.sock"
-    )
+    possible_filepaths = [
+        os.path.join(
+            os.environ["XDG_RUNTIME_DIR"],
+            "hypr",
+            HYPRLAND_INSTANCE_SIGNATURE,
+            ".socket2.sock",
+        ),
+        os.path.join("/tmp/hypr/", HYPRLAND_INSTANCE_SIGNATURE, ".socket2.sock"),
+    ]
 
-    if not os.path.exists(socket_path):
-        click.secho(f"Socket {socket_path} does not exist", fg="red", err=True)
+    socket_path = None
+    for sp in possible_filepaths:
+        if os.path.exists(sp):
+            socket_path = sp
+            break
+
+    if socket_path is None:
+        click.secho(
+            f"Could not find socket file at {possible_filepaths=}", fg="red", err=True
+        )
         exit(1)
 
     with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client_socket:
