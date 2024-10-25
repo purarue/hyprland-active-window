@@ -1,6 +1,6 @@
 # hyprland-watcher-window
 
-A script which connects to the active [Hyprland](https://github.com/hyprwm/Hyprland) socket and saves which window is currently focused. This is a wayland version of [this](https://github.com/seanbreckenridge/aw-watcher-window) CLI tool.
+A script which connects to the active [Hyprland](https://github.com/hyprwm/Hyprland) socket and saves which window is currently focused. This is a wayland version of [this](https://github.com/purarue/aw-watcher-window) CLI tool.
 
 This works much nicer than the X11 version since it no longer has to poll the active window, and recieves events over the socket whenever Hyprland broadcast any changes.
 
@@ -18,7 +18,7 @@ Options:
 ## Install
 
 ```
-pip install git+https://seanbreckenridge/hyprland-active-window
+pip install git+https://purarue/hyprland-active-window
 ```
 
 ## Example
@@ -27,4 +27,4 @@ pip install git+https://seanbreckenridge/hyprland-active-window
 hyprland-active-window -d ~/Documents/focused_window.csv
 ```
 
-Like `window_watcher`, this CSV can be parsed with [active_window](https://github.com/seanbreckenridge/active_window) to python, or into JSON. This is also used internally in [HPI](https://github.com/seanbreckenridge/HPI/blob/master/my/activitywatch/active_window.py)
+Like `window_watcher`, this CSV can be parsed with [active_window](https://github.com/purarue/active_window) to python, or into JSON. This is also used internally in [HPI](https://github.com/purarue/HPI/blob/master/my/activitywatch/active_window.py)
