@@ -48,7 +48,7 @@ class Manager:
                 appname, _, title = data.partition(",")
                 now = time()
                 has_data = appname.strip() or title.strip()
-                # we recieved an event, so if we have a previous window
+                # we received an event, so if we have a previous window
                 # write it out
                 if (
                     self.current_window is not None
