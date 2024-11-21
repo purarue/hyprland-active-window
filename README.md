@@ -2,7 +2,7 @@
 
 A script which connects to the active [Hyprland](https://github.com/hyprwm/Hyprland) socket and saves which window is currently focused. This is a wayland version of [this](https://github.com/purarue/aw-watcher-window) CLI tool.
 
-This works much nicer than the X11 version since it no longer has to poll the active window, and recieves events over the socket whenever Hyprland broadcast any changes.
+This works much nicer than the X11 version since it no longer has to poll the active window, and receives events over the socket whenever Hyprland broadcast any changes.
 
 This saves when the window was initially focused, how long it was focused for, the app name and window title, as provided by Hyprland.
 
